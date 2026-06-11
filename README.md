@@ -6,6 +6,8 @@ M-Fi underwrites and disburses micro-loans to autonomous software agents in real
 
 Built for **Sui Overflow 2026** — _Agentic Web_ and _Walrus_ tracks.
 
+**Live dApp:** [mfi-sui.vercel.app](https://mfi-sui.vercel.app) · the same build is also stored on Walrus as a [Walrus Site](https://testnet.suivision.xyz/object/0x44f88c13744fd6a157a5e3040c3fc8cdd589d0a4b65dc7cedddfebfd42a87d25).
+
 - **Live package (testnet):** [`0x8b75ef9a…818036`](https://testnet.suivision.xyz/package/0x8b75ef9aa4c20c03207e2b3821038240f8e17d48e3b0cc6b58c43c6bde818036)
 
 ---

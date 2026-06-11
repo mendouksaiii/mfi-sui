@@ -27,3 +27,4 @@ mfi-reports/publish-result.json
 Thumbs.db
 .vscode/
 .idea/
+web/.vercel/
