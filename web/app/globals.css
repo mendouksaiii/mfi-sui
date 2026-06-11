@@ -1,0 +1,329 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    /* Spring physics for every interactive surface — no linear, no ease-in-out. */
+    --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    background: #050508;
+  }
+
+  body {
+    @apply bg-ink-950 text-fg antialiased;
+    font-family: 'Rajdhani', system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: 'Orbitron', monospace;
+    letter-spacing: 0.01em;
+    text-wrap: balance;
+  }
+
+  /* Keyboard navigation is part of the craft — a visible neon focus ring. */
+  :focus-visible {
+    outline: 2px solid rgba(0, 245, 255, 0.85);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    @apply font-mono;
+  }
+
+  /* CRT scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.06) 2px,
+      rgba(0, 0, 0, 0.06) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* Film grain — breaks digital flatness. Fixed, never on scrolling content. */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9998;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  ::selection {
+    background: rgba(0, 245, 255, 0.3);
+    color: #fff;
+  }
+
+  ::-webkit-scrollbar {
+    width: 7px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #050508;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 245, 255, 0.3);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #00f5ff;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  .text-hero {
+    font-size: clamp(2.6rem, 6vw, 5.4rem);
+    line-height: 1.02;
+  }
+  .text-section {
+    font-size: clamp(1.9rem, 4vw, 3.4rem);
+    line-height: 1.05;
+  }
+
+  /* Neon cyan text glow (used for emphasis words / the logo). */
+  .glow-text,
+  .neon-text-cyan {
+    color: #00f5ff;
+    text-shadow:
+      0 0 10px #00f5ff,
+      0 0 30px #00f5ff,
+      0 0 60px rgba(0, 245, 255, 0.5),
+      0 0 120px rgba(0, 245, 255, 0.2);
+  }
+
+  /* Aggressive periodic glitch on the glowing accent text. */
+  .glow-text {
+    animation: glitch 4.5s steps(1) infinite;
+  }
+  @keyframes glitch {
+    0%, 88%, 100% {
+      text-shadow: 0 0 10px #00f5ff, 0 0 30px #00f5ff, 0 0 60px rgba(0, 245, 255, 0.5);
+      transform: translate(0, 0);
+      clip-path: none;
+    }
+    89% { transform: translate(-2px, 1px); text-shadow: -3px 0 #ff006e, 3px 0 #00f5ff, 0 0 30px #00f5ff; }
+    91% { transform: translate(3px, -1px); text-shadow: 3px 0 #ff006e, -3px 0 #00f5ff, 0 0 30px #00f5ff; clip-path: inset(20% 0 30% 0); }
+    93% { transform: translate(-2px, 0); text-shadow: -2px 0 #bf00ff, 2px 0 #00f5ff, 0 0 30px #00f5ff; clip-path: inset(60% 0 10% 0); }
+    95% { transform: translate(2px, 1px); text-shadow: 0 0 10px #00f5ff, 0 0 30px #00f5ff; clip-path: none; }
+  }
+
+  /* Always-on scanning sweep across neon cards. */
+  .neon-card,
+  .hero-panel {
+    position: relative;
+  }
+  .neon-card::after,
+  .hero-panel::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00f5ff, transparent);
+    transform: translateX(-100%);
+    animation: card-sweep 4.5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes card-sweep {
+    0%, 100% { transform: translateX(-100%); }
+    50% { transform: translateX(100%); }
+  }
+
+  /* Neon flicker (logos / live indicators). */
+  .flicker {
+    animation: flicker 3.5s linear infinite;
+  }
+  @keyframes flicker {
+    0%, 100%, 43%, 47% { opacity: 1; }
+    45% { opacity: 0.55; }
+    92% { opacity: 0.7; }
+  }
+  .neon-text-pink {
+    color: #ff006e;
+    text-shadow: 0 0 10px #ff006e, 0 0 30px rgba(255, 0, 110, 0.5);
+  }
+
+  /* Neon card surface. */
+  .neon-card {
+    background: #0d0d14;
+    border: 1px solid rgba(0, 245, 255, 0.15);
+    border-radius: 4px;
+    transition:
+      transform 0.5s var(--ease-spring),
+      border-color 0.5s var(--ease-spring),
+      box-shadow 0.5s var(--ease-spring);
+  }
+  .neon-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(0, 245, 255, 0.4);
+    box-shadow: 0 0 30px rgba(0, 245, 255, 0.15);
+  }
+
+  /* Double-bezel: machined hardware. An outer aluminum tray holding a glass
+     core — concentric radii, hairline ring, inner top-light. */
+  .bezel {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 24px 60px -36px rgba(0, 245, 255, 0.25);
+  }
+  .bezel-core {
+    background: #0d0d14;
+    border: 1px solid rgba(0, 245, 255, 0.12);
+    border-radius: 7px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+  }
+
+  /* Spotlight border — the card edge lights up under the cursor.
+     Set --spot-x / --spot-y from a mousemove handler. */
+  .spotlight {
+    position: relative;
+  }
+  .spotlight::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s var(--ease-spring);
+    background: radial-gradient(
+      220px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+      rgba(0, 245, 255, 0.12),
+      transparent 65%
+    );
+  }
+  .spotlight:hover::before {
+    opacity: 1;
+  }
+
+  .glow-ring {
+    box-shadow: 0 0 20px rgba(0, 245, 255, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.08);
+  }
+
+  /* Solid cyan neon button with clipped corners — spring in, physical press. */
+  .btn-cyan {
+    background: #00f5ff;
+    color: #000;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    box-shadow: 0 0 20px rgba(0, 245, 255, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.1);
+    transition:
+      transform 0.45s var(--ease-spring),
+      box-shadow 0.45s var(--ease-spring);
+  }
+  .btn-cyan:hover {
+    box-shadow: 0 0 40px rgba(0, 245, 255, 0.7), 0 0 80px rgba(0, 245, 255, 0.3);
+    transform: scale(1.03);
+  }
+  .btn-cyan:active {
+    transform: scale(0.97);
+    transition-duration: 0.1s;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: #00f5ff;
+    border: 1px solid rgba(0, 245, 255, 0.4);
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    transition:
+      transform 0.45s var(--ease-spring),
+      border-color 0.45s var(--ease-spring),
+      box-shadow 0.45s var(--ease-spring);
+  }
+  .btn-ghost:hover {
+    border-color: #00f5ff;
+    box-shadow: 0 0 24px rgba(0, 245, 255, 0.4);
+  }
+  .btn-ghost:active {
+    transform: scale(0.97);
+    transition-duration: 0.1s;
+  }
+
+  /* Breathing glow for the portal wordmark — the sign hums.
+     Opacity only: composited, never repaints the glow. */
+  .breathe {
+    animation: breathe 6.5s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.86; }
+  }
+
+  /* Nav link underline that slides in from the left. */
+  .nav-link {
+    position: relative;
+  }
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -5px;
+    height: 1px;
+    width: 100%;
+    background: linear-gradient(90deg, #00f5ff, transparent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.45s var(--ease-out-expo);
+  }
+  .nav-link:hover::after {
+    transform: scaleX(1);
+  }
+
+  /* Neon tag / pill. */
+  .neon-tag {
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #00f5ff;
+    border: 1px solid rgba(0, 245, 255, 0.4);
+    background: rgba(0, 245, 255, 0.05);
+  }
+
+  .neon-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.25), rgba(255, 0, 110, 0.2), transparent);
+  }
+
+  .reveal-init {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+}
+
+[data-dapp-kit] button {
+  font-family: 'Share Tech Mono', monospace;
+}

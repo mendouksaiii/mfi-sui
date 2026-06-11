@@ -1,0 +1,14 @@
+[package]
+name = "mfi"
+edition = "2024"
+license = "MIT"
+authors = ["M-Fi"]
+
+# Sui Overflow 2026 — M-Fi (Machine Finance)
+# Autonomous AI credit bureau & micro-lending protocol for the agent economy.
+# System dependencies (Sui, MoveStdlib) are resolved implicitly by the toolchain.
+
+[dependencies]
+
+[addresses]
+mfi = "0x0"

@@ -1,0 +1,29 @@
+# dependencies / build output
+node_modules/
+.next/
+web/out/
+mfi/build/
+mfi-reports/build/
+
+# secrets — never commit. oracle/.env holds the underwriter mnemonic + Groq key;
+# .agents.json holds the agents' private keys.
+.env
+.env.*
+oracle/.env
+oracle/.agents.json
+
+# runtime artifacts
+oracle/agents.log
+*.log
+
+# local tooling (walrus.exe / site-builder.exe — ~70 MB of binaries)
+tools/
+
+# publish receipts (contain nothing secret, but they're machine noise)
+mfi-reports/publish-result.json
+
+# editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

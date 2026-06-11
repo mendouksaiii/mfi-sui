@@ -1,0 +1,13 @@
+[package]
+name = "mfi_reports"
+edition = "2024"
+license = "MIT"
+authors = ["M-Fi"]
+
+# Standalone registry of agent credit reports (Walrus blob IDs). Published as
+# its own package so the live mfi treasury/reputation history is untouched.
+
+[dependencies]
+
+[addresses]
+mfi_reports = "0x0"
