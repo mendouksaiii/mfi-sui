@@ -40,10 +40,11 @@ export function Leaderboard() {
           <span className="text-right">Report</span>
         </div>
 
+        {/* Mount-animated for the same reason as the live feed: reputation
+            rows must never depend on scroll detection to become visible. */}
         <motion.ul
           initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: '-60px' }}
+          animate="show"
           variants={{ show: { transition: { staggerChildren: 0.08 } } }}
           className="divide-y divide-line"
         >

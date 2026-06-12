@@ -73,8 +73,7 @@ export function TrustMeter({ score }: { score: number }) {
         <motion.div
           className={`h-full ${tone}`}
           initial={{ width: 0 }}
-          whileInView={{ width: `${pct}%` }}
-          viewport={{ once: true }}
+          animate={{ width: `${pct}%` }}
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
         />
       </div>

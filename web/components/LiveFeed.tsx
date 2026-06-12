@@ -35,10 +35,12 @@ export function LiveFeed() {
           <span className="text-right">Status</span>
         </div>
 
+        {/* Animate on mount, not on scroll — in-view detection proved
+            unreliable in the static production build, and the live feed must
+            never be able to render invisible. */}
         <motion.ul
           initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: '-80px' }}
+          animate="show"
           variants={{ show: { transition: { staggerChildren: 0.07 } } }}
           className="divide-y divide-line"
         >

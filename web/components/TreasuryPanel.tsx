@@ -43,15 +43,13 @@ export function TreasuryPanel() {
               <motion.div
                 className="bg-signal"
                 initial={{ width: 0 }}
-                whileInView={{ width: `${100 - utilisation}%` }}
-                viewport={{ once: true }}
+                animate={{ width: `${100 - utilisation}%` }}
                 transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
               />
               <motion.div
                 className="bg-signal-dim"
                 initial={{ width: 0 }}
-                whileInView={{ width: `${utilisation}%` }}
-                viewport={{ once: true }}
+                animate={{ width: `${utilisation}%` }}
                 transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
               />
             </div>
