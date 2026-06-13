@@ -12,6 +12,7 @@ import { Transaction } from '@mysten/sui/transactions';
 import { client, underwriter, underwriterAddress } from './sui.js';
 import { config, fromBaseUnits } from './config.js';
 import { storeAttested } from './walrus.js';
+import { withRetry } from './retry.js';
 
 export interface CreditReport {
   version: '1.0';
@@ -38,18 +39,22 @@ export async function compileReport(agent: {
   handle: string;
   job: string;
 }): Promise<CreditReport | null> {
-  const [repEvents, loanEvents] = await Promise.all([
-    client.queryEvents({
-      query: { MoveEventType: `${config.packageId}::reputation::ReputationUpdated` },
-      order: 'descending',
-      limit: 50,
-    }),
-    client.queryEvents({
-      query: { MoveEventType: `${config.packageId}::underwriter::LoanDisbursed` },
-      order: 'descending',
-      limit: 50,
-    }),
-  ]);
+  const [repEvents, loanEvents] = await withRetry(
+    () =>
+      Promise.all([
+        client.queryEvents({
+          query: { MoveEventType: `${config.packageId}::reputation::ReputationUpdated` },
+          order: 'descending',
+          limit: 50,
+        }),
+        client.queryEvents({
+          query: { MoveEventType: `${config.packageId}::underwriter::LoanDisbursed` },
+          order: 'descending',
+          limit: 50,
+        }),
+      ]),
+    { label: 'report compile' },
+  );
 
   const mine = repEvents.data.filter((e) => (e.parsedJson as any).agent === agent.address);
   if (mine.length === 0) return null; // no history yet

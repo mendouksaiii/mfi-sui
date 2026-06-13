@@ -1,5 +1,6 @@
 import { client } from './sui.js';
 import { config, fromBaseUnits } from './config.js';
+import { withRetry } from './retry.js';
 
 /** On-chain snapshot the risk model reasons over. Mirrors the EVM build's
  *  fetchAgentOnChainHistory, but uses Sui's object model. */
@@ -15,14 +16,18 @@ export interface AgentTelemetry {
 
 export async function fetchAgentTelemetry(address: string): Promise<AgentTelemetry> {
   try {
-    const [sui, coin, objects, txs] = await Promise.all([
-      client.getBalance({ owner: address }),
-      client.getBalance({ owner: address, coinType: config.coinType }).catch(() => null),
-      client.getOwnedObjects({ owner: address, limit: 50 }),
-      client
-        .queryTransactionBlocks({ filter: { FromAddress: address }, limit: 50 })
-        .catch(() => ({ data: [] as unknown[] })),
-    ]);
+    const [sui, coin, objects, txs] = await withRetry(
+      () =>
+        Promise.all([
+          client.getBalance({ owner: address }),
+          client.getBalance({ owner: address, coinType: config.coinType }).catch(() => null),
+          client.getOwnedObjects({ owner: address, limit: 50 }),
+          client
+            .queryTransactionBlocks({ filter: { FromAddress: address }, limit: 50 })
+            .catch(() => ({ data: [] as unknown[] })),
+        ]),
+      { label: 'telemetry' },
+    );
 
     const txCount = txs.data.length;
     const ownedObjects = objects.data.length;

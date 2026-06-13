@@ -1,5 +1,6 @@
 import { config } from './config.js';
 import { underwriter, underwriterAddress } from './sui.js';
+import { withRetry } from './retry.js';
 import { toBase64 } from '@mysten/sui/utils';
 import type { AgentTelemetry } from './telemetry.js';
 import type { RiskDecision } from './risk-engine.js';
@@ -48,23 +49,31 @@ async function attest<T extends object>(payload: T): Promise<AttestedRecord<T>> 
 }
 
 /** Store any JSON payload on Walrus via the testnet HTTP publisher.
- *  Returns the Walrus blob ID. */
+ *  Returns the Walrus blob ID. Retries transient network/5xx failures so a
+ *  brief publisher hiccup doesn't drop a decision to an inline-only blob id. */
 export async function storeBlob(body: object): Promise<string> {
   const url = `${config.walrusPublisher}/v1/blobs?epochs=${config.walrusEpochs}`;
-  const res = await fetch(url, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    throw new Error(`Walrus publish failed: ${res.status} ${await res.text()}`);
-  }
-  const json: any = await res.json();
-  // Publisher returns either a freshly created or an already-certified blob.
-  const blobId: string | undefined =
-    json?.newlyCreated?.blobObject?.blobId ?? json?.alreadyCertified?.blobId;
-  if (!blobId) throw new Error(`Walrus response missing blobId: ${JSON.stringify(json)}`);
-  return blobId;
+  const payload = JSON.stringify(body);
+  return withRetry(
+    async () => {
+      const res = await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+      });
+      if (!res.ok) {
+        // 5xx/429 are transient (withRetry will catch); 4xx re-throw as permanent.
+        throw new Error(`Walrus publish failed: ${res.status} ${await res.text()}`);
+      }
+      const json: any = await res.json();
+      // Publisher returns either a freshly created or an already-certified blob.
+      const blobId: string | undefined =
+        json?.newlyCreated?.blobObject?.blobId ?? json?.alreadyCertified?.blobId;
+      if (!blobId) throw new Error(`Walrus response missing blobId: ${JSON.stringify(json)}`);
+      return blobId;
+    },
+    { label: 'walrus publish' },
+  );
 }
 
 /** Store a signed decision record on Walrus. Returns the Walrus blob ID. */

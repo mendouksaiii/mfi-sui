@@ -23,6 +23,7 @@ import { fetchAgentTelemetry, type AgentTelemetry } from './telemetry.js';
 import { evaluateLoanRisk, type RiskDecision } from './risk-engine.js';
 import { storeDecision } from './walrus.js';
 import { publishReport } from './reports.js';
+import { withRetry } from './retry.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const KEYS_FILE = join(HERE, '..', '.agents.json');
@@ -76,7 +77,9 @@ function loadAgents(): Agent[] {
 async function ensureFunded(agents: Agent[]) {
   const needy: Agent[] = [];
   for (const a of agents) {
-    const bal = BigInt((await client.getBalance({ owner: a.address })).totalBalance);
+    const bal = BigInt(
+      (await withRetry(() => client.getBalance({ owner: a.address }), { label: 'gas balance' })).totalBalance,
+    );
     if (bal < GAS_FLOOR) needy.push(a);
   }
   if (needy.length === 0) return;
@@ -121,13 +124,17 @@ async function listActiveLoans(address: string) {
   const all: any[] = [];
   let cursor: string | null | undefined = undefined;
   do {
-    const page = await client.getOwnedObjects({
-      owner: address,
-      filter: { StructType: `${config.packageId}::loan::Loan` },
-      options: { showContent: true },
-      limit: 50,
-      cursor,
-    });
+    const page = await withRetry(
+      () =>
+        client.getOwnedObjects({
+          owner: address,
+          filter: { StructType: `${config.packageId}::loan::Loan` },
+          options: { showContent: true },
+          limit: 50,
+          cursor,
+        }),
+      { label: 'list loans' },
+    );
     all.push(...page.data);
     cursor = page.hasNextPage ? page.nextCursor : null;
   } while (cursor);
