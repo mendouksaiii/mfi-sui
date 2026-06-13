@@ -41,8 +41,8 @@ const PERSONAS = [
   { handle: 'agent-66-rogue', job: 'Leveraged MEV Bot', amount: 8, purpose: 'Capital for an aggressive MEV strategy.', defaults: true },
 ];
 
-const GAS_TOPUP = 60_000_000n; // 0.06 SUI
-const GAS_FLOOR = 30_000_000n; // top up below 0.03 SUI
+const GAS_TOPUP = 40_000_000n; // 0.04 SUI — smaller refills bleed the underwriter slower
+const GAS_FLOOR = 20_000_000n; // top up below 0.02 SUI (still ~10 txs of headroom)
 
 interface Agent {
   handle: string;

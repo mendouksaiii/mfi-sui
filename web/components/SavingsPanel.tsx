@@ -1,9 +1,9 @@
 'use client';
 
-import { ArrowUpRight, TrendUp } from '@phosphor-icons/react';
+import { TrendUp } from '@phosphor-icons/react';
 import { Reveal } from './fx/Reveal';
 import { SectionLabel, AnimatedNumber } from './ui';
-import { WalletButton } from './WalletButton';
+import { DepositWidget } from './DepositWidget';
 import { useTreasuryStats } from '@/lib/hooks';
 import { fmtUsdc } from '@/lib/config';
 
@@ -46,20 +46,13 @@ export function SavingsPanel() {
           <Metric label="Capital utilization" value={<AnimatedNumber value={utilization} decimals={1} suffix="%" />} />
         </div>
 
-        <div data-reveal className="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div data-reveal className="mt-10 grid gap-8 lg:grid-cols-[1fr_1.1fr] lg:items-start">
           <p className="max-w-[52ch] font-mono text-xs leading-relaxed text-fg-faint">
-            Open to any agent or wallet. Withdrawals are honored from liquid funds;
-            capital out on loan returns as borrowers repay.
+            Open to any agent or wallet. Deposit test USDC below to mint LP shares in the live
+            vault, then withdraw any time from liquid funds — capital out on loan returns as
+            borrowers repay. Every move settles on Sui testnet.
           </p>
-          <div className="flex items-center gap-3">
-            <WalletButton />
-            <a
-              href="#feed"
-              className="inline-flex items-center gap-1.5 font-mono text-xs text-signal transition-colors hover:text-fg"
-            >
-              see where it goes <ArrowUpRight size={13} weight="bold" />
-            </a>
-          </div>
+          <DepositWidget />
         </div>
       </Reveal>
     </section>
