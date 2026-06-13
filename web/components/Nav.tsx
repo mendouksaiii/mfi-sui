@@ -5,11 +5,11 @@ import { LogoMark } from './Logo';
 import { StatusDot } from './ui';
 
 const LINKS = [
-  { label: 'Live Feed', href: '/app#feed' },
-  { label: 'Reputation', href: '/app#leaderboard' },
-  { label: 'Audit', href: '/app#audit' },
-  { label: 'Treasury', href: '/app#treasury' },
-  { label: 'Savings', href: '/app#savings' },
+  { label: 'Live Feed', href: '/app/feed' },
+  { label: 'Reputation', href: '/app/reputation' },
+  { label: 'Audit', href: '/app/audit' },
+  { label: 'Treasury', href: '/app/treasury' },
+  { label: 'Savings', href: '/app/savings' },
 ];
 
 export function Nav() {

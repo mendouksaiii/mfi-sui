@@ -13,7 +13,7 @@ export function AppHeader() {
   const { stats: t, isLive } = useTreasuryStats();
   return (
     <section className="border-b border-line">
-      <div className="mx-auto max-w-[1400px] px-5 pb-12 pt-28 lg:px-8">
+      <div className="mx-auto max-w-[1400px] px-5 pb-12 pt-12 lg:px-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Link href="/" className="inline-flex items-center gap-2 font-mono text-xs text-fg-muted transition-colors hover:text-fg">
             <ArrowLeft size={14} /> back to portal
