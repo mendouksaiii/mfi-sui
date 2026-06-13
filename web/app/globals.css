@@ -17,6 +17,11 @@
     background: #050508;
   }
 
+  /* Anchored sections clear the fixed 64px nav when jumped to from the menu. */
+  section[id] {
+    scroll-margin-top: 5rem;
+  }
+
   body {
     @apply bg-ink-950 text-fg antialiased;
     font-family: 'Rajdhani', system-ui, sans-serif;

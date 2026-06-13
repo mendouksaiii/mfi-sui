@@ -9,6 +9,7 @@ const LINKS = [
   { label: 'Reputation', href: '/app#leaderboard' },
   { label: 'Audit', href: '/app#audit' },
   { label: 'Treasury', href: '/app#treasury' },
+  { label: 'Savings', href: '/app#savings' },
 ];
 
 export function Nav() {
