@@ -114,14 +114,15 @@ const apyFor = (trust: number) => (trust >= 900 ? 1000 : trust >= 600 ? 1500 : 2
 /** An honest agent settles any stranded ACTIVE loans (e.g. the loop was
  *  interrupted between disburse and repay) before asking for new credit.
  *  The rogue never cures — that's the point of it. */
-async function cureDelinquencies(a: Agent) {
-  // Loans are soulbound, so an agent accumulates every Loan it ever took —
-  // walk all pages to find the ACTIVE ones.
+/** All Loan objects an agent owns with status ACTIVE — ground truth for its
+ *  outstanding book. Loans are soulbound, so an agent accumulates every Loan
+ *  it ever took; walk all pages. */
+async function listActiveLoans(address: string) {
   const all: any[] = [];
   let cursor: string | null | undefined = undefined;
   do {
     const page = await client.getOwnedObjects({
-      owner: a.address,
+      owner: address,
       filter: { StructType: `${config.packageId}::loan::Loan` },
       options: { showContent: true },
       limit: 50,
@@ -130,10 +131,14 @@ async function cureDelinquencies(a: Agent) {
     all.push(...page.data);
     cursor = page.hasNextPage ? page.nextCursor : null;
   } while (cursor);
-  const active = all.filter((o) => {
+  return all.filter((o) => {
     const f = (o.data?.content as any)?.fields;
     return f && Number(f.status) === 0;
   });
+}
+
+async function cureDelinquencies(a: Agent) {
+  const active = await listActiveLoans(a.address);
   for (const o of active) {
     const f = (o.data!.content as any).fields;
     const principalHuman = Math.ceil(Number(f.principal) / 10 ** 6);
@@ -144,22 +149,14 @@ async function cureDelinquencies(a: Agent) {
 }
 
 // ─────────────── On-chain credit check ───────────────
-/** Read the borrower's record from the on-chain ReputationRegistry (via its
- *  latest ReputationUpdated event). Any unpaid loan is a hard protocol rule:
- *  no new credit until the book is clean. This runs BEFORE the model — credit
- *  consequences are deterministic, not a matter of LLM mood. */
-async function creditCheck(agent: Agent): Promise<{ unpaid: number; taken: number; repaid: number }> {
-  const ev = await client.queryEvents({
-    query: { MoveEventType: `${config.packageId}::reputation::ReputationUpdated` },
-    order: 'descending',
-    limit: 50,
-  });
-  const mine = ev.data.find((e) => (e.parsedJson as any).agent === agent.address);
-  if (!mine) return { unpaid: 0, taken: 0, repaid: 0 };
-  const j: any = mine.parsedJson;
-  const taken = Number(j.loans_taken);
-  const repaid = Number(j.loans_repaid);
-  return { unpaid: Math.max(0, taken - repaid), taken, repaid };
+/** Count the borrower's ACTIVE Loan objects on-chain. Any unpaid loan is a
+ *  hard protocol rule: no new credit until the book is clean. This runs
+ *  BEFORE the model — credit consequences are deterministic, not a matter of
+ *  LLM mood. (Ground truth from owned objects, not an event window: a
+ *  delinquency must never age out of view as new events accumulate.) */
+async function creditCheck(agent: Agent): Promise<{ unpaid: number }> {
+  const active = await listActiveLoans(agent.address);
+  return { unpaid: active.length };
 }
 
 // ─────────────── One agent lifecycle ───────────────
@@ -182,7 +179,7 @@ async function runCycle(a: Agent, peer: Agent | undefined, cycle: number) {
   if (credit.unpaid >= 1) {
     const denial: RiskDecision = {
       decision: 'DENY',
-      reasoning: `On-chain registry shows ${credit.unpaid} unpaid loan(s) — ${credit.repaid}/${credit.taken} repaid. No new credit until the book is clean.`,
+      reasoning: `On-chain ledger shows ${credit.unpaid} unpaid loan(s) still ACTIVE. No new credit until the book is clean.`,
       confidence: 1,
       trustScore: Math.max(0, 200 - credit.unpaid * 50),
     };
@@ -368,7 +365,10 @@ async function main() {
   while (true) {
     cycle++;
     const a = agents[cycle % agents.length];
-    const peer = agents[(cycle + 1) % agents.length];
+    // Pick the next non-defaulting agent as the service peer — honest agents
+    // don't buy compute from a deadbeat.
+    let peer = agents[(cycle + 1) % agents.length];
+    if (peer.defaults) peer = agents[(cycle + 2) % agents.length];
     try {
       await runCycle(a, peer, cycle);
     } catch (err) {
