@@ -1,5 +1,6 @@
 import { Nav } from '@/components/Nav';
 import { PortalHero } from '@/components/PortalHero';
+import { Agent3D } from '@/components/Agent3D';
 import { Marquee } from '@/components/Marquee';
 import { ProofSection } from '@/components/ProofSection';
 import { HorizontalAgents } from '@/components/HorizontalAgents';
@@ -17,6 +18,7 @@ export default function Home() {
     <main className="w-full max-w-full overflow-x-hidden text-fg">
       <Nav />
       <PortalHero />
+      <Agent3D />
       <Marquee />
       <div id="how" className="scroll-mt-16">
         <ProofSection />
