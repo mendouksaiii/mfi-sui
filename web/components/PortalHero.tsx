@@ -31,6 +31,25 @@ export function PortalHero() {
 
   return (
     <section ref={root} className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-5">
+      {/* Photographic backplate — a powered-down agent. Scrimmed heavily so the
+          glowing wordmark and copy stay legible over the busy image. */}
+      <div className="pointer-events-none absolute inset-0 z-0">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/hero-agent.png"
+          alt=""
+          aria-hidden="true"
+          className="h-full w-full object-cover object-center opacity-[0.6]"
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(50% 42% at 50% 50%, rgba(5,5,8,0.9) 35%, transparent 78%), linear-gradient(180deg, rgba(5,5,8,0.7) 0%, transparent 22%), linear-gradient(0deg, rgba(5,5,8,0.9) 0%, transparent 34%), linear-gradient(rgba(5,5,8,0.34), rgba(5,5,8,0.34))',
+          }}
+        />
+      </div>
+
       {/* HUD corner brackets */}
       <span className="hud-corner pointer-events-none absolute left-6 top-24 h-10 w-10 border-l border-t border-signal/60" />
       <span className="hud-corner pointer-events-none absolute right-6 top-24 h-10 w-10 border-r border-t border-signal/60" />
@@ -69,7 +88,7 @@ export function PortalHero() {
 
         {/* the logo */}
         <h1
-          className="portal-logo glow-text breathe font-display font-black leading-[0.85] tracking-tightest"
+          className="portal-logo hero-wordmark breathe font-display font-black leading-[0.85] tracking-tightest"
           style={{ fontSize: 'clamp(4rem, 15vw, 13rem)' }}
         >
           <span className="mr-[0.06em] align-middle text-[0.5em]">&#9679;</span>M&#8211;Fi

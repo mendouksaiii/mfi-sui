@@ -278,6 +278,17 @@
     transition-duration: 0.1s;
   }
 
+  /* Portal wordmark over the photo backplate — a crisp near-white letter core
+     with a tight, controlled cyan glow so it reads sharply instead of blooming
+     into a smear (unlike the heavier .glow-text used for accent words). */
+  .hero-wordmark {
+    color: #e9feff;
+    text-shadow:
+      0 0 4px rgba(0, 245, 255, 0.95),
+      0 0 14px rgba(0, 245, 255, 0.7),
+      0 0 32px rgba(0, 245, 255, 0.4);
+  }
+
   /* Breathing glow for the portal wordmark — the sign hums.
      Opacity only: composited, never repaints the glow. */
   .breathe {
