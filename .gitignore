@@ -28,3 +28,4 @@ Thumbs.db
 .vscode/
 .idea/
 web/.vercel/
+mfi-verifier/publish-result.json

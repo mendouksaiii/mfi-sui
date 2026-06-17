@@ -130,6 +130,8 @@ mfi-sui/
 | Reports package (`mfi_reports`) | [`0x8bbb42dd…991045`](https://testnet.suivision.xyz/package/0x8bbb42ddd316638e363e998ec7db8f6dbdffebc1cdc08f9707d6e2377a991045) |
 | `ReportRegistry` | [`0x053f4aad…ce2170`](https://testnet.suivision.xyz/object/0x053f4aad29b6af9609b9add5a4d64da032cc668d0214a56150a1291151ce2170) |
 | Walrus Site (the dApp itself) | [`0x44f88c13…a87d25`](https://testnet.suivision.xyz/object/0x44f88c13744fd6a157a5e3040c3fc8cdd589d0a4b65dc7cedddfebfd42a87d25) |
+| Verifier package (`mfi_verifier`) | [`0xfb8d17ec…22b3cca`](https://testnet.suivision.xyz/package/0xfb8d17ec872e9d7774f6aa656e8ef05b53064cf69beeec0f031c05fd422b3cca) |
+| `EnclaveConfig` (attested-decision verifier) | [`0xc597fd6e…1ce61d`](https://testnet.suivision.xyz/object/0xc597fd6e12f145e46f3f80ebb1391b6698ca8f834bb414c7698202198e1ce61d) |
 
 A `MOCK_USDC` token is used because Sui testnet lacks deep stablecoin liquidity. Because the treasury is generic over its coin type, a mainnet deployment parameterizes it with native USDC without code changes.
 
@@ -189,14 +191,36 @@ The agent loop runs without an LLM key by falling back to the rule-based underwr
 
 ---
 
+## Verifiable AI: compute + storage + settlement
+
+Walrus proves *what* the underwriter decided. The harder question is *was the decision computed honestly* — today it runs on a server you must trust. M-Fi closes that with a three-layer verifiability stack, all Sui-native:
+
+| Layer | Primitive | Guarantee |
+| --- | --- | --- |
+| **Compute** | [Sui Nautilus](https://docs.sui.io/concepts/cryptography/nautilus) (TEE attestation) | the risk model ran *unmodified* in an attested enclave |
+| **Storage** | Walrus | the decision + telemetry are immutable and independently fetchable |
+| **Settlement** | Sui Move | the loan only exists if both checks pass on-chain |
+
+The on-chain verification half is **live and tested** today: [`mfi_verifier::enclave`](mfi-verifier/sources/enclave.move) registers the attested enclave's signing key and verifies the enclave's Ed25519 signature over each decision before it is accepted (real `sui::ed25519` math, 3/3 unit tests, a `DecisionVerified` event already emitted on testnet). The remaining step — running the LLM inside an [AWS Nitro enclave and registering its attestation document](https://blog.sui.io/nautilus-offchain-security-privacy-web3/) (custom PCR verification has been live on Sui mainnet since Feb 2026) — is the integration on the roadmap. The contract that checks it is already deployed.
+
+---
+
+## Built for Sui's realities
+
+Sui is fast and parallel, but it has sharp edges we designed around rather than ignored:
+
+- **Liveness.** Sui has had real mainnet interruptions (a January 2026 consensus halt; [three outages inside 48 hours in late May 2026](https://www.coindesk.com/tech/2026/05/28/sui-blockchain-suffers-another-network-outage-as-transactions-grind-to-a-halt)). An always-on autonomous agent loop cannot assume the chain is always reachable, so the oracle wraps every RPC and Walrus call in exponential-backoff retry and recovers a dropped cycle instead of crashing.
+- **Shared-object congestion.** Writes to the same shared object execute sequentially — the constraint behind Sui's own [congestion-control work](https://blog.sui.io/shared-object-congestion-control/). Every loan currently mutates one shared `Treasury`, which is fine at demo volume but is the first thing to shard at scale: per-risk-tier treasuries (independent shared objects) remove the single write-contention point, and reads (`total_assets`) stay cheap. The accounting is already generic over the treasury, so sharding is additive, not a rewrite.
+
 ## Roadmap
 
-The protocol is feature-complete on testnet. Remaining work toward a production deployment:
+The protocol is feature-complete on testnet. Remaining work toward a production deployment, in priority order:
 
-- Yield routing for idle treasury capital (Scallop), with just-in-time withdrawal.
-- Default handling — delinquency accounting and a collateral model.
-- Operational key management — `AdminCap` in a multisig, `UnderwriterCap` in a KMS.
-- Independent security audit and a regulatory review prior to holding real funds.
+- **Nautilus underwriting** — run the LLM risk engine in an AWS Nitro enclave and register its attestation; the on-chain verifier ([`mfi_verifier`](mfi-verifier/sources/enclave.move)) is already deployed, making the underwriter trustless rather than trusted.
+- **Private credit reports via [Seal](https://docs.sui.io)** — threshold-encrypt reports on Walrus with on-chain access policies, so an agent's history is portable *and* confidential (decryptable only by the agent and approved lenders).
+- **Gasless, wallet-free UX via [Enoki](https://docs.enoki.mystenlabs.com/)** — zkLogin onboarding (sign in with Google) and a sponsored-transaction gas pool, which also replaces the underwriter's manual gas funding with production-grade sponsorship.
+- **Treasury sharding** — per-risk-tier shared objects to eliminate write contention (see above).
+- Yield routing for idle capital (Scallop) with just-in-time withdrawal; a collateral model; `AdminCap` in a multisig and `UnderwriterCap` in a KMS; independent security audit before holding real funds.
 
 The on-chain exposure ceiling makes a bounded mainnet pilot feasible ahead of these, with maximum loss capped by an on-chain parameter.
 

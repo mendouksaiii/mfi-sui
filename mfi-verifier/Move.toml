@@ -1,0 +1,13 @@
+[package]
+name = "mfi_verifier"
+edition = "2024"
+license = "MIT"
+authors = ["M-Fi"]
+
+# On-chain verifier for attested off-chain AI underwriting (Sui Nautilus model).
+# Published separately so the live mfi protocol package stays untouched.
+
+[dependencies]
+
+[addresses]
+mfi_verifier = "0x0"
