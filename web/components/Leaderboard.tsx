@@ -31,7 +31,7 @@ export function Leaderboard() {
           </p>
         </div>
 
-        <div className="mt-12 grid grid-cols-[auto_1.4fr_1fr_0.8fr_1fr_auto] gap-4 border-b border-line pb-3 font-mono text-[11px] uppercase tracking-wider text-fg-faint">
+        <div className="mt-12 hidden grid-cols-[auto_1.4fr_1fr_0.8fr_1fr_auto] gap-4 border-b border-line pb-3 font-mono text-[11px] uppercase tracking-wider text-fg-faint sm:grid">
           <span>#</span>
           <span>Agent</span>
           <span>Trust score</span>
@@ -57,40 +57,57 @@ export function Leaderboard() {
                   hidden: { opacity: 0, y: 12 },
                   show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] } },
                 }}
-                className="grid grid-cols-[auto_1.4fr_1fr_0.8fr_1fr_auto] items-center gap-4 py-5"
+                className="py-5"
               >
-                <span className={`tnum text-lg ${i === 0 ? 'text-signal' : 'text-fg-faint'}`}>
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <div className="flex items-center gap-3">
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-line bg-ink-900 font-mono text-[10px] text-signal">
-                    {row.agent.id.split('-')[1]}
+                {/* Top line: rank + agent + report. On sm+ this becomes the full
+                    6-column grid; the trust/repaid/borrowed cells are hidden on
+                    mobile and shown on a second line below instead. */}
+                <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4 sm:grid-cols-[auto_1.4fr_1fr_0.8fr_1fr_auto]">
+                  <span className={`tnum text-lg ${i === 0 ? 'text-signal' : 'text-fg-faint'}`}>
+                    {String(i + 1).padStart(2, '0')}
                   </span>
-                  <div className="min-w-0">
-                    <p className="truncate font-mono text-sm text-fg">{row.agent.id}</p>
-                    <p className="font-mono text-[11px] text-fg-faint">{shortAddr(row.agent.address)}</p>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-line bg-ink-900 font-mono text-[10px] text-signal">
+                      {row.agent.id.split('-')[1]}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate font-mono text-sm text-fg">{row.agent.id}</p>
+                      <p className="font-mono text-[11px] text-fg-faint">{shortAddr(row.agent.address)}</p>
+                    </div>
                   </div>
+                  <div className="hidden sm:block">
+                    <TrustMeter score={row.trustScore} />
+                  </div>
+                  <span className="hidden text-right text-sm text-fg-muted tnum sm:block">
+                    {row.loansRepaid}/{row.loansTaken}
+                  </span>
+                  <span className="hidden text-right text-sm text-fg tnum sm:block">
+                    <span className="text-fg-faint">$</span>
+                    {fmtUsdc(row.totalBorrowed)}
+                  </span>
+                  <span className="justify-self-end text-right">
+                    {pointer ? (
+                      <button
+                        onClick={() => setOpen(pointer)}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-signal/35 bg-signal/10 px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-signal transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-signal/20 hover:shadow-[0_0_18px_rgba(0,245,255,0.25)] active:scale-95"
+                      >
+                        <FileText size={13} /> view
+                      </button>
+                    ) : (
+                      <span className="font-mono text-[11px] text-fg-faint">—</span>
+                    )}
+                  </span>
                 </div>
-                <TrustMeter score={row.trustScore} />
-                <span className="tnum text-right text-sm text-fg-muted">
-                  {row.loansRepaid}/{row.loansTaken}
-                </span>
-                <span className="tnum text-right text-sm text-fg">
-                  <span className="text-fg-faint">$</span>
-                  {fmtUsdc(row.totalBorrowed)}
-                </span>
-                <span className="text-right">
-                  {pointer ? (
-                    <button
-                      onClick={() => setOpen(pointer)}
-                      className="inline-flex items-center gap-1.5 rounded-md border border-signal/35 bg-signal/10 px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-signal transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-signal/20 hover:shadow-[0_0_18px_rgba(0,245,255,0.25)] active:scale-95"
-                    >
-                      <FileText size={13} /> view
-                    </button>
-                  ) : (
-                    <span className="font-mono text-[11px] text-fg-faint">—</span>
-                  )}
-                </span>
+
+                {/* Mobile-only second line: trust meter + stats */}
+                <div className="mt-3 flex items-center justify-between gap-4 pl-[44px] sm:hidden">
+                  <TrustMeter score={row.trustScore} />
+                  <span className="shrink-0 font-mono text-[11px] text-fg-muted">
+                    <span className="text-fg-faint">repaid</span> {row.loansRepaid}/{row.loansTaken}
+                    <span className="ml-3 text-fg-faint">borrowed</span>{' '}
+                    <span className="text-fg">${fmtUsdc(row.totalBorrowed)}</span>
+                  </span>
+                </div>
               </motion.li>
             );
           })}
