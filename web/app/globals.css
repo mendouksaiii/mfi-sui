@@ -278,6 +278,15 @@
     transition-duration: 0.1s;
   }
 
+  /* Dark glow on the text itself (not an overlay on the image) so copy stays
+     legible over a bright photo backplate. */
+  .hero-legible {
+    text-shadow:
+      0 1px 2px rgba(0, 6, 18, 0.95),
+      0 2px 6px rgba(0, 6, 18, 0.85),
+      0 0 22px rgba(0, 6, 18, 0.8);
+  }
+
   /* Portal wordmark over the photo backplate — a crisp near-white letter core
      with a tight, controlled cyan glow so it reads sharply instead of blooming
      into a smear (unlike the heavier .glow-text used for accent words). */
